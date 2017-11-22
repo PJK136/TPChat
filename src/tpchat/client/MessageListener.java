@@ -11,4 +11,5 @@ public interface MessageListener {
     public void onInfoReceived(String message);
     public void onWarnReceived(String message);
     public void onErrReceived(String message);
+    public void onClientDisconnect();
 }
