@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Date;
+import java.util.List;
+import java.util.StringJoiner;
 import tpchat.client.MessageType;
 
 /**
@@ -13,29 +15,51 @@ import tpchat.client.MessageType;
  * @author paul
  */
 public class ClientThread implements Runnable {
-    private Socket socket;
-    private ServerInterface server;
+    private final Socket socket;
+    private final ClientListener listener;
     
-    private boolean connected;
+    private boolean logged;
+    private boolean admin;
     private String pseudo;
     
-    private PrintStream out;
+    private final PrintStream out;
             
-    public ClientThread(Socket socket, ServerInterface server) throws IOException {
+    public ClientThread(Socket socket, ClientListener listener) throws IOException {
         this.socket = socket;
-        this.server = server;
+        this.listener = listener;
         
-        this.connected = false;
+        this.logged = false;
         this.pseudo = null;
         this.out = new PrintStream(socket.getOutputStream());
     }
     
-    public boolean isConnected() {
-        return connected;
+    Socket getSocket() {
+        return socket;
+    }
+    
+    public boolean isLogged() {
+        return logged;
+    }
+    
+    public void setLogged(boolean logged) {
+        this.logged = logged;
+    }
+    
+    public boolean isAdmin() {
+        return admin;
+    }
+    
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
     
     public String getPseudo() {
         return pseudo;
+    }
+    
+    public void setPseudo(String pseudo) {
+        this.pseudo = pseudo;
+        sendPseudo(pseudo);
     }
 
     @Override
@@ -44,50 +68,20 @@ public class ClientThread implements Runnable {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String line;
             while ((line = in.readLine()) != null) {
-                if (line.startsWith("/")) {
-                    String[] args = line.split(" ", 2);
-                    if (args.length == 0)
-                        continue;
-
-                    if (args[0].equals("/connect")) {
-                        if (connected)
-                            sendErr("You are already connected !");
-                        else if (args.length == 2) {
-                            pseudo = server.queryNewPseudo(args[1]);
-                            connected = true;
-                            server.onClientConnect(this);
-                        }
-                    } else if (!connected) {
-                        sendErr("You are not connected !");
-                    } else if (args[0].equals("/pseudo")) {
-                        if (args.length == 2) {
-                            if (!pseudo.equals(args[1])) {
-                                String oldPseudo = pseudo;
-                                pseudo = server.queryNewPseudo(args[1]);
-                                server.onPseudoChanged(this, oldPseudo);
-                            }
-                        } else
-                            sendErr("Usage : /pseudo <pseudo>");
-                    } else if (args[0].equals("/w")) {
-                        String[] args2 = args[1].split(" ", 2);
-                        if (args.length == 2 && args2.length == 2)
-                            server.onWhisperReceived(this, args2[0], args2[1]);
-                        else
-                            sendErr("Usage : /w pseudo message");
-                    } else
-                        sendErr("Unknown command !");
-                } else if (connected) {
-                    if (!line.trim().isEmpty())
-                        server.onMessageReceived(this, line);
-                } else {
-                    sendErr("You are not connected !");
-                }
+                listener.onMessageReceived(this, line);
             }
         } catch (IOException ex) {
             
         } finally {
-            server.onClientDisconnect(this);
-            connected = false;
+            listener.onClientDisconnect(this);
+        }
+    }
+    
+    public void disconnect() {
+        try {
+            socket.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
     
@@ -114,13 +108,34 @@ public class ClientThread implements Runnable {
     public static String toErr(String message) {
         return "err " + message;
     }
-
-    public void sendMessage(MessageType type, Date date, String pseudo, String message) {
-        sendRawMessage(toMessage(type, date, pseudo, message));
+    
+    public static String toPseudo(String pseudo) {
+        return "pseudo " + pseudo;
     }
     
+    public static String toList(List<String> pseudos) {
+        StringJoiner joiner = new StringJoiner(" ");
+        joiner.add("list");
+        for (String pseudo : pseudos) {
+            joiner.add(pseudo);
+        }
+        
+        return joiner.toString();
+    }
+    
+    public void sendWarn(String message) {
+        sendRawMessage(toWarn(message));
+    }
+
     public void sendErr(String message) {
         sendRawMessage(toErr(message));
     }
-
+    
+    private void sendPseudo(String pseudo) {
+        sendRawMessage(toPseudo(pseudo));
+    }
+    
+    public void sendList(List<String> pseudos) {
+        sendRawMessage(toList(pseudos));
+    }
 }
