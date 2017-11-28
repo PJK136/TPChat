@@ -90,13 +90,12 @@ public class Client {
         socket = new Socket(address, port);
         out = new PrintStream(socket.getOutputStream());
         thread = new Thread(new Listener());
-        thread.run();
+        thread.start();
         
-        out.println("/login " + pseudo);
+        send("/login " + pseudo);
     }
     
     public void send (String message) throws IOException {
-        out = new PrintStream(socket.getOutputStream());
         out.println(message);
     }
     

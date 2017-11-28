@@ -7,7 +7,12 @@ import java.util.List;
  *
  * @author paul
  */
-public class Interface implements MessageListener {
+public class Interface implements Runnable, MessageListener {
+    @Override
+    public void run() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     @Override
     public void onClientDisconnect() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -46,5 +51,10 @@ public class Interface implements MessageListener {
     @Override
     public void onPseudoListReceived(Date date, List<String> pseudos) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    public static void main(String[] args) {
+        Interface inter = new Interface();
+        inter.run();
     }
 }
