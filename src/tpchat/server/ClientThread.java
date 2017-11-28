@@ -85,7 +85,9 @@ public class ClientThread implements Runnable {
     }
     
     public void sendRawMessage(String message) {
-        out.println(message);
+        synchronized (out) {
+            out.println(message);
+        }
     }
         
     public static String toMessage(Date date, String pseudo, String message) {
@@ -124,9 +126,10 @@ public class ClientThread implements Runnable {
                 .add(pseudo).toString();
     }
     
-    public static String toList(List<String> pseudos) {
+    public static String toList(Date date, List<String> pseudos) {
         StringJoiner joiner = new StringJoiner(" ");
         joiner.add("list");
+        joiner.add(String.valueOf(date.getTime()));
         for (String pseudo : pseudos) {
             joiner.add(pseudo);
         }
@@ -151,6 +154,6 @@ public class ClientThread implements Runnable {
     }
     
     public void sendList(List<String> pseudos) {
-        sendRawMessage(toList(pseudos));
+        sendRawMessage(toList(new Date(), pseudos));
     }
 }
