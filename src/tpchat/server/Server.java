@@ -1,6 +1,11 @@
 package tpchat.server;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Date;
@@ -17,32 +22,44 @@ import tpchat.server.AdminCommand.*;
  * @author paul
  */
 public class Server implements Runnable, ClientListener {   
+    private boolean stop;
     private final int port;
+    private ServerSocket listenSocket;
     private final List<ClientThread> clients;
     private final Map<String, ClientThread> pseudos;
     private final Map<String, Command> commands;
+    private final LinkedList<String> history;
+    private final int HISTORY_SIZE = 10;
+    private final String historyFile;
+    private final PrintWriter historyWriter;
     
-    public Server(int port) {
+    public Server(int port, String hist) throws FileNotFoundException {
+        stop = false;
         this.port = port;
+        listenSocket = null;
         clients = new LinkedList<>();
         pseudos = new HashMap<>();
         commands = new HashMap<>();
+        history = new LinkedList<>();
+        historyFile = hist;
+        historyWriter = new PrintWriter(historyFile);
         
-        commands.put("/login", new LoginCommand());
-        commands.put("/disconnect", new DisconnectCommand());
-        commands.put("/w", new WhisperCommand());
-        commands.put("/pseudo", new PseudoChangeCommand());
-        commands.put("/list", new ListPseudosCommand());
-        commands.put("/auth", new AuthCommand());
-        commands.put("/kick", new KickCommand());
+        addCommand("login", new LoginCommand());
+        addCommand("disconnect", new DisconnectCommand());
+        addCommand("w", new WhisperCommand());
+        addCommand("pseudo", new PseudoChangeCommand());
+        addCommand("list", new ListPseudosCommand());
+        addCommand("auth", new AuthCommand());
+        addCommand("kick", new KickCommand());
     }
-    
+       
     @Override
     public void run() {
         try {
-            ServerSocket listenSocket = new ServerSocket(port);
-            System.out.println("Server listening on port " + port + "...");
-            while (true) {
+            stop = false;
+            listenSocket = new ServerSocket(port);
+            System.out.println("Server listening on port " + port + " and writing into " + historyFile + " ...");
+            while (!stop) {
                 Socket clientSocket = listenSocket.accept();
                 System.out.println("Connection from: " + clientSocket.getInetAddress().getCanonicalHostName() + ":" + clientSocket.getPort());
                 ClientThread client = new ClientThread(clientSocket, this);
@@ -54,7 +71,30 @@ public class Server implements Runnable, ClientListener {
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+        } finally {
+            for (ClientThread client : clients)
+                client.disconnect();
+            historyWriter.flush();
         }
+    }
+    
+    public void stop() throws IOException {
+        System.out.println("Server shuting down...");
+        stop = true;
+        listenSocket.close();
+    }
+    
+    public void addCommand(String name, Command command) {
+        commands.put("/" + name, command);
+    }
+    
+    public LinkedList<String> getHistory() {
+        LinkedList<String> copyHistory;
+        synchronized (history) {
+            copyHistory = new LinkedList<>(history);
+        }
+        
+        return copyHistory;
     }
     
     public void sendRaw(String message) {
@@ -69,6 +109,12 @@ public class Server implements Runnable, ClientListener {
         }
         
         System.out.println(message);
+        synchronized (history) {
+            history.add(message);
+            while (history.size() > HISTORY_SIZE)
+                history.poll();
+            historyWriter.println(message);
+        }
     }
     
     public void sendInfo(String message) {
@@ -166,12 +212,29 @@ public class Server implements Runnable, ClientListener {
         }
     }
        
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
+        final String historyFile = "history.txt";
+
         Server server;
         if (args.length >= 1)
-            server = new Server(Integer.parseInt(args[0]));
+            server = new Server(Integer.parseInt(args[0]), historyFile);
         else
-            server = new Server(8000);
-        server.run();
+            server = new Server(8000, historyFile);
+        new Thread(server).start();
+        
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            String line = reader.readLine();
+            while (!line.startsWith("stop") && !line.startsWith("exit"))
+                line = reader.readLine();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        try {
+            server.stop();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }

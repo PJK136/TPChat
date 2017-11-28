@@ -21,6 +21,9 @@ public interface Command {
             if (client.isLogged())
                 client.sendErr("You're already connected !");
             else if (!args.isEmpty()) {
+                for (String h : server.getHistory()) {
+                    client.sendRawMessage(h);
+                }
                 server.setNewPseudo(client, args);
                 client.setLogged(true);
                 server.sendInfo(client.getPseudo() + " has connected.");
