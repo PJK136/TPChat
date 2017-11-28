@@ -3,11 +3,14 @@ package tpchat.server;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -31,7 +34,7 @@ public class Server implements Runnable, ClientListener {
     private final LinkedList<String> history;
     private final int HISTORY_SIZE = 10;
     private final String historyFile;
-    private final PrintWriter historyWriter;
+    private PrintWriter historyWriter;
     
     public Server(int port, String hist) throws FileNotFoundException {
         stop = false;
@@ -42,7 +45,6 @@ public class Server implements Runnable, ClientListener {
         commands = new HashMap<>();
         history = new LinkedList<>();
         historyFile = hist;
-        historyWriter = new PrintWriter(historyFile);
         
         addCommand("login", new LoginCommand());
         addCommand("disconnect", new DisconnectCommand());
@@ -57,6 +59,16 @@ public class Server implements Runnable, ClientListener {
     public void run() {
         try {
             stop = false;
+            
+            history.clear();
+            Files.lines(Paths.get(historyFile)).forEach((String message) -> {
+                history.add(message);
+                while (history.size() > HISTORY_SIZE)
+                    history.poll();
+            });
+            
+            historyWriter = new PrintWriter(new FileOutputStream(new File(historyFile), true));
+            
             listenSocket = new ServerSocket(port);
             System.out.println("Server listening on port " + port + " and writing into " + historyFile + " ...");
             while (!stop) {
@@ -75,6 +87,7 @@ public class Server implements Runnable, ClientListener {
             for (ClientThread client : clients)
                 client.disconnect();
             historyWriter.flush();
+            historyWriter.close();
         }
     }
     
