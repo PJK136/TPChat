@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
-import tpchat.client.MessageType;
 
 /**
  *
@@ -89,28 +88,40 @@ public class ClientThread implements Runnable {
         out.println(message);
     }
         
-    public static String toMessage(MessageType type, Date date, String pseudo, String message) {
-        return type + " " + date.getTime() + " " + pseudo + " " + message;
+    public static String toMessage(Date date, String pseudo, String message) {
+        return new StringJoiner(" ")
+                .add("msg").add(String.valueOf(date.getTime()))
+                .add(pseudo).add(message).toString();
     }
     
     public static String toWhisper(Date date, String pseudoFrom, String pseudoTo, String message) {
-        return "wp " + date.getTime() + " " + pseudoFrom + " " + pseudoTo + " " + message;
+        return new StringJoiner(" ")
+                .add("wp").add(String.valueOf(date.getTime()))
+                .add(pseudoFrom).add(pseudoTo).add(message).toString();
     }
     
-    public static String toInfo(String message) {
-        return "info " + message;
+    public static String toInfo(Date date, String message) {
+        return new StringJoiner(" ")
+                .add("info").add(String.valueOf(date.getTime()))
+                .add(message).toString();
     }
 
-    public static String toWarn(String message) {
-        return "warn " + message;
+    public static String toWarn(Date date, String message) {
+        return new StringJoiner(" ")
+                .add("warn").add(String.valueOf(date.getTime()))
+                .add(message).toString();
     }
 
-    public static String toErr(String message) {
-        return "err " + message;
+    public static String toErr(Date date, String message) {
+        return new StringJoiner(" ")
+                .add("err").add(String.valueOf(date.getTime()))
+                .add(message).toString();
     }
     
-    public static String toPseudo(String pseudo) {
-        return "pseudo " + pseudo;
+    public static String toPseudo(Date date, String pseudo) {
+        return new StringJoiner(" ")
+                .add("pseudo").add(String.valueOf(date.getTime()))
+                .add(pseudo).toString();
     }
     
     public static String toList(List<String> pseudos) {
@@ -123,16 +134,20 @@ public class ClientThread implements Runnable {
         return joiner.toString();
     }
     
+    public void sendInfo(String message) {
+        sendRawMessage(toInfo(new Date(), message));
+    }
+    
     public void sendWarn(String message) {
-        sendRawMessage(toWarn(message));
+        sendRawMessage(toWarn(new Date(), message));
     }
 
     public void sendErr(String message) {
-        sendRawMessage(toErr(message));
+        sendRawMessage(toErr(new Date(), message));
     }
     
     private void sendPseudo(String pseudo) {
-        sendRawMessage(toPseudo(pseudo));
+        sendRawMessage(toPseudo(new Date(), pseudo));
     }
     
     public void sendList(List<String> pseudos) {

@@ -65,6 +65,7 @@ public interface UserCommand extends Command {
             if (!args.isEmpty()) {
                 if (args.equals("somuchpower")) {
                     client.setAdmin(true);
+                    client.sendInfo("You're now admin !");
                 } else {
                     client.sendErr("Wrong password !");
                 }

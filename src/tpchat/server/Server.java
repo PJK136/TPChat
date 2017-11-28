@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import tpchat.client.MessageType;
 import tpchat.server.Command.*;
 import tpchat.server.UserCommand.*;
 import tpchat.server.AdminCommand.*;
@@ -73,12 +72,12 @@ public class Server implements Runnable, ClientListener {
     }
     
     public void sendInfo(String message) {
-        message = ClientThread.toInfo(message);
+        message = ClientThread.toInfo(new Date(), message);
         sendRaw(message);
     }
     
-    public void sendMessage(MessageType type, Date date, String pseudo, String message) {
-        message = ClientThread.toMessage(type, date, pseudo, message);
+    public void sendMessage(Date date, String pseudo, String message) {
+        message = ClientThread.toMessage(date, pseudo, message);
         sendRaw(message);
     }
 
@@ -148,7 +147,7 @@ public class Server implements Runnable, ClientListener {
                 client.sendErr("Unknown command !");
         } else if (client.isLogged()) {
             if (!message.trim().isEmpty()) {
-                sendMessage(MessageType.MSG, new Date(), client.getPseudo(), message);
+                sendMessage(new Date(), client.getPseudo(), message);
             }
         } else {
             client.sendErr("You are not logged !");
@@ -168,7 +167,7 @@ public class Server implements Runnable, ClientListener {
     }
        
     public static void main(String[] args) {
-        Server server = null;
+        Server server;
         if (args.length >= 1)
             server = new Server(Integer.parseInt(args[0]));
         else
