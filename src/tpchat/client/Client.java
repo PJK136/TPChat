@@ -27,8 +27,7 @@ public class Client {
             try {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 String line;
-                while (true) {
-                    line = in.readLine();
+                while ((line = in.readLine()) != null) {
                     String[] msg = line.split(" ", 3);
                     if (msg.length < 3)
                         continue;
@@ -77,6 +76,8 @@ public class Client {
                     }
                 }
             } catch (IOException e) {
+
+            } finally {
                 listener.onClientDisconnect();
             }
         }
