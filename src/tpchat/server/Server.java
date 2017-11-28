@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
@@ -61,11 +62,16 @@ public class Server implements Runnable, ClientListener {
             stop = false;
             
             history.clear();
-            Files.lines(Paths.get(historyFile)).forEach((String message) -> {
-                history.add(message);
-                while (history.size() > HISTORY_SIZE)
-                    history.poll();
-            });
+            
+            try {
+                Files.lines(Paths.get(historyFile)).forEach((String message) -> {
+                    history.add(message);
+                    while (history.size() > HISTORY_SIZE)
+                        history.poll();
+                });
+            } catch (NoSuchFileException e) {
+                e.printStackTrace();
+            }
             
             historyWriter = new PrintWriter(new FileOutputStream(new File(historyFile), true));
             
