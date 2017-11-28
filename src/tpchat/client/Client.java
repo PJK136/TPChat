@@ -8,6 +8,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -29,25 +33,51 @@ public class Client {
                 String line;
                 while (true) {
                     line = in.readLine();
-                    String [] tab = line.split(" ", 2);
-                    if (tab[0].equals("msg")) {
-                        String [] tab2 = tab[1].split(" ", 3);
-                        
-                    }
-                    else if (tab[0].equals("wp")) {
-                        
-                    }
-                    else if (tab[0].equals("hist")) {
-                        
-                    }
-                    else if (tab[0].equals("info")) {
-                        
-                    }
-                    else if (tab[0].equals("err")) {
-                        
-                    }
-                    else if (tab[0].equals("warn")) {
-                        
+                    String[] msg = line.split(" ", 3);
+                    if (msg.length < 3)
+                        continue;
+                    
+                    /* 0 : type
+                       1 : timestamp
+                       2 : le reste
+                    */
+                    
+                    Date date = new Date(Long.valueOf(msg[1]));
+                    String[] args = null;
+                    
+                    switch (msg[0]) {
+                        case "msg":
+                            args = msg[2].split(" ", 2);
+                            if (args.length == 2)
+                                listener.onMessageReceived(date, args[0], args[1]);
+                            break;
+                        case "wp":
+                            args = msg[2].split(" ", 3);
+                            if (args.length == 3)
+                                listener.onWhisperReceived(date, args[0], args[1], args[2]);
+                            break;
+                        case "info":
+                            listener.onInfoReceived(date, msg[2]);
+                            break;
+                        case "warn":
+                            listener.onWarnReceived(date, msg[2]);
+                            break;
+                        case "err":
+                            listener.onErrReceived(date, msg[2]);
+                            break;
+                        case "pseudo":
+                            listener.onPseudoReceived(date, msg[2]);
+                            break;
+                        case "list":
+                            args = msg[2].split(" ");
+                            List<String> pseudos = new LinkedList<>();
+                            for (int i = 0; i < args.length; i++) {
+                                pseudos.add(args[i]);
+                            }
+                            listener.onPseudoListReceived(date, pseudos);
+                            break;
+                        default:
+                            break;
                     }
                 }
             } catch (IOException e) {
@@ -59,7 +89,10 @@ public class Client {
     public void connect (String address, int port, String pseudo) throws IOException {
         socket = new Socket(address, port);
         out = new PrintStream(socket.getOutputStream());
-        out.println("/connect " + pseudo);
+        thread = new Thread(new Listener());
+        thread.run();
+        
+        out.println("/login " + pseudo);
     }
     
     public void send (String message) throws IOException {
