@@ -14,14 +14,13 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.WindowConstants;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
 
 /**
  *
@@ -31,11 +30,17 @@ public class InterfaceGUI extends JFrame implements ActionListener, MessageListe
 
     private Client client;
     
-    private JTextArea chat;
+    private JTextPane chat;
     private JTextField message;
     private JList<String> pseudos;
     
     private String pseudo;
+    
+    private Style defaultStyle;
+    private Style infoStyle;
+    private Style warnStyle;
+    private Style errStyle;
+    private Style whisperStyle;
     
     public InterfaceGUI() throws HeadlessException {
         super("Chat");
@@ -44,7 +49,7 @@ public class InterfaceGUI extends JFrame implements ActionListener, MessageListe
         
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         
-        chat = new JTextArea();
+        chat = new JTextPane();
         chat.setEditable(false);
         
         message = new JTextField();
@@ -59,6 +64,16 @@ public class InterfaceGUI extends JFrame implements ActionListener, MessageListe
         
         setMinimumSize(new Dimension(800, 600));
         pack();
+        
+        defaultStyle = chat.addStyle("default", null);
+        infoStyle = chat.addStyle("info", null);
+        StyleConstants.setForeground(infoStyle, Color.blue);
+        warnStyle = chat.addStyle("warn", null);
+        StyleConstants.setForeground(warnStyle, Color.orange);
+        errStyle = chat.addStyle("err", null);
+        StyleConstants.setForeground(errStyle, Color.red);
+        whisperStyle = chat.addStyle("whisper", null);
+        StyleConstants.setForeground(whisperStyle, Color.pink);
     }
 
         
@@ -88,17 +103,38 @@ public class InterfaceGUI extends JFrame implements ActionListener, MessageListe
     
     @Override
     public void onMessageReceived(Date date, String pseudo, String message) {
-        java.awt.EventQueue.invokeLater(() -> chat.append("[" + date + "] " + pseudo + " : " + message + "\n"));
+        StyledDocument doc = chat.getStyledDocument();
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                doc.insertString(doc.getLength(), "[" + date + "] " + pseudo + " : " + message + "\n", defaultStyle);
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void onWhisperReceived(Date date, String from, String to, String message) {
-        java.awt.EventQueue.invokeLater(() -> chat.append("[" + date + "] " + from + " -> " + to + " : " + message + "\n"));
+        StyledDocument doc = chat.getStyledDocument();
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                doc.insertString(doc.getLength(), "[" + date + "] " + from + " -> " + to + " : " + message + "\n", whisperStyle);
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+            }
+        });
     }
     
     @Override
     public void onInfoReceived(Date date, String message) {
-        java.awt.EventQueue.invokeLater(() -> chat.append("[" + date + "] Info : " + message + "\n"));
+        StyledDocument doc = chat.getStyledDocument();
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                doc.insertString(doc.getLength(), "[" + date + "] Info : " + message + "\n", infoStyle);
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+            }
+        });
         
         if (pseudo != null) {
             try {
@@ -111,18 +147,39 @@ public class InterfaceGUI extends JFrame implements ActionListener, MessageListe
 
     @Override
     public void onWarnReceived(Date date, String message) {
-        java.awt.EventQueue.invokeLater(() -> chat.append("[" + date + "] Attention : " + message + "\n"));
+        StyledDocument doc = chat.getStyledDocument();
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                doc.insertString(doc.getLength(), "[" + date + "] Attention : " + message + "\n", warnStyle);
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void onErrReceived(Date date, String message) {
-        java.awt.EventQueue.invokeLater(() -> chat.append("[" + date + "] Erreur : " + message + "\n"));
+        StyledDocument doc = chat.getStyledDocument();
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                doc.insertString(doc.getLength(), "[" + date + "] Erreur : " + message + "\n", errStyle);
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void onPseudoReceived(Date date, String pseudo) {
         this.pseudo = pseudo;
-        java.awt.EventQueue.invokeLater(() -> chat.append("[" + date + "] Votre pseudo est : " + pseudo + "\n"));
+        StyledDocument doc = chat.getStyledDocument();
+        java.awt.EventQueue.invokeLater(() -> {
+            try {
+                doc.insertString(doc.getLength(), "[" + date + "] Votre pseudo est : " + pseudo + "\n", infoStyle);
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+            }
+        });
     }
 
     @Override
