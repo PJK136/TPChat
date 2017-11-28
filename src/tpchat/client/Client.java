@@ -82,12 +82,16 @@ public class Client {
             }
         }
     }
-    
-    public void connect (String address, int port, String pseudo) throws IOException {
+
+    public void connect (String address, int port) throws IOException {
         socket = new Socket(address, port);
         out = new PrintStream(socket.getOutputStream());
         thread = new Thread(new Listener());
         thread.start();
+    }
+    
+    public void connect (String address, int port, String pseudo) throws IOException {
+        connect(address, port);
         
         send("/login " + pseudo);
     }
