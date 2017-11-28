@@ -5,16 +5,21 @@ import static java.lang.Integer.parseInt;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author paul
  */
 public class Interface implements Runnable, MessageListener {
+    private boolean stop;
+
+    public Interface() {
+        stop = false;
+    }
+    
     @Override
     public void run() {
+        stop = false;
         Client client = new Client(this);
         Scanner sc = new Scanner(System.in);
         System.out.println("Veuillez entrer votre adresse IP.");
@@ -31,7 +36,7 @@ public class Interface implements Runnable, MessageListener {
             return;
         }
         
-        while(true) {
+        while(!stop) {
             String line = sc.nextLine();
             try {
                 client.send(line);
@@ -39,12 +44,12 @@ public class Interface implements Runnable, MessageListener {
                 System.err.println("Impossible d'envoyer le message.");
             }
         }
-        
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
     public void onClientDisconnect() {
+        System.out.println("Vous avez été déconnecté");
+        stop = true;
     }
     
     @Override
@@ -79,11 +84,18 @@ public class Interface implements Runnable, MessageListener {
 
     @Override
     public void onPseudoListReceived(Date date, List<String> pseudos) {
-        System.out.print("[" + date + "] Les personnes présentent sur ce chat sont : ");
-        for (int i=0; i < pseudos.size()-1; i++) {
-            System.out.print(pseudos.get(i) + ", ");
+        System.out.print("[" + date + "] Les personnes présentes sur ce chat sont : ");
+        int i = 0;
+        for (String pseudo : pseudos) {
+            System.out.print(pseudo);
+            if (i != pseudos.size()-1)
+                System.out.print(", ");
+            else
+                System.out.print(".");
+            
+            i++;
         }
-        System.out.print(pseudos.get(pseudos.size()-1) + ".");
+        
         System.out.println();
     }
     
