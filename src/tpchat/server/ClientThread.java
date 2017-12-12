@@ -3,7 +3,7 @@ package tpchat.server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Date;
 import java.util.List;
@@ -21,7 +21,7 @@ public class ClientThread implements Runnable {
     private boolean admin;
     private String pseudo;
     
-    private final PrintStream out;
+    private final PrintWriter out;
             
     public ClientThread(Socket socket, ClientListener listener) throws IOException {
         this.socket = socket;
@@ -29,7 +29,7 @@ public class ClientThread implements Runnable {
         
         this.logged = false;
         this.pseudo = null;
-        this.out = new PrintStream(socket.getOutputStream());
+        this.out = new PrintWriter(socket.getOutputStream());
     }
     
     Socket getSocket() {
