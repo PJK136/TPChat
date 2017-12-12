@@ -47,7 +47,7 @@ public class Interface implements Runnable, MessageListener {
     }
     
     /**
-     * Affiche le message envoyé par un client à tout les autres utilisateurs du chat
+     * Affiche le message envoyé par un client à tous les autres utilisateurs du chat
      * @param date Date du message
      * @param pseudo Pseudo de la personne qui a envoyé le message
      * @param message Message qui a été envoyé
@@ -58,7 +58,7 @@ public class Interface implements Runnable, MessageListener {
     }
     
     /**
-     * Affiche le message privé envoyé par un client à un autre
+     * Affiche le message privé envoyé par un client à ce client
      * @param date Date du message
      * @param from Pseudo de la personne qui a envoyé le message
      * @param to Pseudo de la personne qui reçoit le message
@@ -110,7 +110,7 @@ public class Interface implements Runnable, MessageListener {
     }
     
     /**
-     * Affiche un message indiquant la liste de toutes les personnes présentent sur le chat
+     * Affiche un message indiquant la liste de toutes les personnes présentes sur le chat
      * @param date Date d'envoi du message du serveur contenant la liste des utlisateurs du chat
      * @param pseudos Liste des pseudos 
      */
@@ -141,7 +141,7 @@ public class Interface implements Runnable, MessageListener {
     }
     
     /**
-     * Point d'entré de l'application
+     * Point d'entrée de l'application
      * @param args Non utilisé
      */
     public static void main(String[] args) {
