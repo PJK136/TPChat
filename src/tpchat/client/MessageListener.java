@@ -41,21 +41,21 @@ public interface MessageListener {
     public void onWarnReceived(Date date, String message);
     
     /**
-     * Méthode appelée quand une erreur est survenue pendant l'exécution du chat
+     * Méthode appelée quand un message d'erreur venant du serveur est reçu
      * @param date Date d'envoi du message d'erreur
      * @param message Message d'erreur du serveur
      */
     public void onErrReceived(Date date, String message);
     
     /**
-     * Méthode appelée quand un utilisateur veut changer de pseudo
+     * Méthode appelée quand un utilisateur vient de changer de pseudo
      * @param date Date d'envoi du message indiquant le changement de pseudo
      * @param pseudo Nouveau pseudo de l'utilisateur
      */
     public void onPseudoReceived(Date date, String pseudo);
     
     /**
-     * Méthode appelée pour afficher la liste des personnes présentes sur le chat
+     * Méthode appelée quand le client reçoit la liste des personnes présentes sur le chat
      * @param date Date d'envoi du message du serveur contenant la liste des utlisateurs du chat
      * @param pseudos Liste des pseudos
      */
