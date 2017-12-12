@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Classe qui gère l'envoi et la réception du message avec le serveur
+ * Classe qui gère l'envoi et la réception des messages avec le serveur
  * @author paul, christophe
  */
 public class Client {
@@ -23,7 +23,7 @@ public class Client {
     
     
     /**
-     * Lis les messages qui arrivent du serveur et les interprête
+     * Lit les messages qui arrivent du serveur et les dispatchent
      */
     private class Listener implements Runnable
     {
@@ -125,7 +125,7 @@ public class Client {
     
     /**
      * Constructeur de Client
-     * @param mListener Ecouteur pour les messages reçus depuis le serveur
+     * @param mListener Écouteur pour les messages reçus depuis le serveur
      */
     public Client (MessageListener mListener) {
         listener = mListener;
