@@ -10,16 +10,21 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
- * @author paul
+ * Classe qui gère l'envoi et la réception du message avec le serveur
+ * @author paul, christophe
  */
 public class Client {
     
+    // ATTRIBUTS
     private Thread thread;
     private MessageListener listener;  
     private Socket socket = null;
     private PrintWriter out = null;
-
+    
+    
+    /**
+     * Lis les messages qui arrivent du serveur et les interprête
+     */
     private class Listener implements Runnable
     {
         @Override
@@ -32,9 +37,9 @@ public class Client {
                     if (msg.length < 3)
                         continue;
                     
-                    /* 0 : type
-                       1 : timestamp
-                       2 : le reste
+                    /* 0 : Type
+                       1 : Timestamp
+                       2 : Le reste du message
                     */
                     
                     Date date = new Date(Long.valueOf(msg[1]));
@@ -83,6 +88,12 @@ public class Client {
         }
     }
 
+    /**
+     * Se connecte au serveur à l'adresse et au port spécifiés
+     * @param address Adresse du serveur
+     * @param port Port du serveur
+     * @throws IOException Erreur d'entrée/sortie
+     */
     public void connect (String address, int port) throws IOException {
         socket = new Socket(address, port);
         out = new PrintWriter(socket.getOutputStream());
@@ -90,16 +101,32 @@ public class Client {
         thread.start();
     }
     
+    /**
+     * Se connecte au serveur à l'adresse et au port spécifiés avec le pseudo fourni
+     * Équivalent à : connect(address, port) puis send("/login " + pseudo)
+     * @param address Adresse du serveur
+     * @param port Port du serveur
+     * @param pseudo Pseudo du client à donner au serveur
+     * @throws IOException Erreur d'entrée/sortie
+     */
     public void connect (String address, int port, String pseudo) throws IOException {
         connect(address, port);
-        
         send("/login " + pseudo);
     }
     
+    /**
+     * Envoie un message au serveur
+     * @param message Message à envoyer au serveur
+     * @throws IOException Erreur d'entrée/sortie
+     */
     public void send (String message) throws IOException {
         out.println(message);
     }
     
+    /**
+     * Constructeur de Client
+     * @param mListener Ecouteur pour les messages reçus depuis le serveur
+     */
     public Client (MessageListener mListener) {
         listener = mListener;
     }
