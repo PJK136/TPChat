@@ -23,8 +23,8 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 /**
- *
- * @author paul
+ * Interface graphique du client
+ * @author paul, christophe
  */
 public class InterfaceGUI extends JFrame implements ActionListener, MessageListener {
 
@@ -42,7 +42,11 @@ public class InterfaceGUI extends JFrame implements ActionListener, MessageListe
     private Style errStyle;
     private Style whisperStyle;
     
-    public InterfaceGUI() throws HeadlessException {
+    
+    /**
+     * Crée l'interface graphique
+     */
+    public InterfaceGUI() {
         super("Chat");
         
         client = new Client(this);
@@ -76,7 +80,7 @@ public class InterfaceGUI extends JFrame implements ActionListener, MessageListe
         StyleConstants.setForeground(whisperStyle, Color.pink);
     }
 
-        
+    
     public void connect(String address, int port) {
         try {
             client.connect(address, port);
